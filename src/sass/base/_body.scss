@@ -1,0 +1,7 @@
+@import '~node_modules/modern-normalize/modern-normalize.css';
+
+body {
+  font-family: $main-font;
+  color: $main-text-color;
+  min-width: 320px;
+}

@@ -1,2 +1,6 @@
-@import './common';
-@import './example';
+@import './utils/_vars.scss';
+@import './base/_reset.scss';
+@import './base/_body.scss';
+@import './components/common/container';
+@import './components/header';
+@import './components/form';
