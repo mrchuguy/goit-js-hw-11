@@ -61,14 +61,6 @@ const renderImages = images => {
     .join('');
   refs.gallery.innerHTML = markup;
   gallery.refresh();
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
-
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
 };
 
 const fetchImages = async () => {
