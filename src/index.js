@@ -1,9 +1,7 @@
-//const axios = require('axios').default;
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-//Notify.success('Sol lucet omnibus');
 
 let currentPage = 1;
 let inputValue = '';
@@ -36,26 +34,41 @@ const renderImages = images => {
         comments,
         downloads,
       }) => `
-  <div class="photo-card">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-    <div class="info">
-      <p class="info-item">
-        <b>Likes ${likes}</b>
-      </p>
-      <p class="info-item">
-        <b>Views ${views}</b>
-      </p>
-      <p class="info-item">
-        <b>Comments ${comments}</b>
-      </p>
-      <p class="info-item">
-        <b>Downloads ${downloads}</b>
-      </p>
-    </div>
-  </div>`
+        <a class='gallery__item' href="${largeImageURL}">
+          <div class="photo-card">
+            <img class='gallery__img' src="${webformatURL}" alt="${tags}" loading="lazy" />
+            <div class="info">
+              <p class="info-item">
+                <b>Likes</b>
+                <span>${likes}</span>
+              </p>
+              <p class="info-item">
+                <b>Views</b>
+                <span>${views}</span>
+              </p>
+              <p class="info-item">
+                <b>Comments</b>
+                <span>${comments}</span>
+              </p>
+              <p class="info-item">
+                <b>Downloads</b>
+                <span>${downloads}</span>
+              </p>
+            </div>
+          </div>
+        </a>`
     )
     .join('');
   refs.gallery.innerHTML = markup;
+  gallery.refresh();
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 };
 
 const fetchImages = async () => {
@@ -90,3 +103,7 @@ const handleEvent = event => {
 };
 
 refs.form.addEventListener('submit', handleEvent);
+refs.gallery.addEventListener('click', event => {
+  event.preventDefault();
+});
+const gallery = new SimpleLightbox('.gallery a');

@@ -1,0 +1,43 @@
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $indent;
+  padding: $indent;
+}
+
+.gallery__item {
+  flex-basis: calc((100% - $indent * ($amount-items - 1)) / $amount-items);
+  align-self: stretch;
+  box-shadow: 0 2px 6px rgb(187, 187, 187);
+  border-radius: 5px;
+  overflow: hidden;
+  transition: box-shadow $anim-dur $anim-func;
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 10px rgb(187, 187, 187);
+  }
+}
+
+.gallery__img {
+  height: 300px;
+  width: auto;
+  min-width: 100%;
+}
+
+.info {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+
+  & b {
+    margin-bottom: 10px;
+    letter-spacing: 0.5;
+  }
+}
