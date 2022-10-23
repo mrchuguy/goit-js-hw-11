@@ -3,42 +3,90 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-Notify.success('Sol lucet omnibus');
+//Notify.success('Sol lucet omnibus');
 
+let currentPage = 1;
+let inputValue = '';
 const refs = {
   form: document.querySelector('.search-form'),
+  gallery: document.querySelector('.gallery'),
 };
 
-const isValidInput = e => {
-  const inputValue = e.currentTarget.elements.searchQuery.value.trim();
-  return inputValue !== '';
+const params = {
+  key: '30688451-760a190d43b2b36afa0e2975a',
+  q: '',
+  image_type: 'photo',
+  orientation: 'horizontal',
+  safesearch: true,
+  page: 1,
+  per_page: 40,
+};
+
+const renderImages = images => {
+  console.log(images);
+  refs.gallery.innerHTML = '';
+  const markup = images
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => `
+  <div class="photo-card">
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+    <div class="info">
+      <p class="info-item">
+        <b>Likes ${likes}</b>
+      </p>
+      <p class="info-item">
+        <b>Views ${views}</b>
+      </p>
+      <p class="info-item">
+        <b>Comments ${comments}</b>
+      </p>
+      <p class="info-item">
+        <b>Downloads ${downloads}</b>
+      </p>
+    </div>
+  </div>`
+    )
+    .join('');
+  refs.gallery.innerHTML = markup;
 };
 
 const fetchImages = async () => {
-  try {
-    const response = await axios.get('https://pixabay.com/api/', {
-      params: {
-        key: '30688451-760a190d43b2b36afa0e2975a',
-        q: '',
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page: 13,
-        per_page: 40,
-      },
-    });
-    console.log(response.data);
-  } catch (error) {
-    console.log(error.message);
+  const response = await axios.get('https://pixabay.com/api/', { params });
+  return response;
+};
+
+const hadleResponse = response => {
+  if (response.data.totalHits === 0) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  } else {
+    if (currentPage === 1)
+      Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+    renderImages(response.data.hits);
   }
 };
 
-refs.form.addEventListener('submit', event => {
+const handleEvent = event => {
   event.preventDefault();
-  if (isValidInput(event)) {
-    console.log('request');
-    fetchImages();
+  inputValue = event.currentTarget.elements.searchQuery.value.trim();
+  if (inputValue !== '') {
+    params.q = inputValue;
+    params.page = currentPage;
+    fetchImages()
+      .then(hadleResponse)
+      .catch(error => console.log(error.message));
   } else {
-    Notify.failure('An empty string has been entered. Repeat request');
+    Notify.failure('An empty string has been entered. Please try again.');
   }
-});
+};
+
+refs.form.addEventListener('submit', handleEvent);
