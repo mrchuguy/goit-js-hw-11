@@ -2,9 +2,12 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import Throttle from 'lodash.throttle';
 
 let currentPage = 1;
 let inputValue = '';
+let maxPage = 1;
+
 const refs = {
   form: document.querySelector('.search-form'),
   gallery: document.querySelector('.gallery'),
@@ -21,8 +24,7 @@ const params = {
 };
 
 const renderImages = images => {
-  console.log(images);
-  refs.gallery.innerHTML = '';
+  if (currentPage === 1) refs.gallery.innerHTML = '';
   const markup = images
     .map(
       ({
@@ -59,7 +61,7 @@ const renderImages = images => {
         </a>`
     )
     .join('');
-  refs.gallery.innerHTML = markup;
+  refs.gallery.insertAdjacentHTML('beforeend', markup);
   gallery.refresh();
 };
 
@@ -68,15 +70,47 @@ const fetchImages = async () => {
   return response;
 };
 
+const pagination = () => {
+  document.removeEventListener('scroll', scrollEvent);
+  currentPage++;
+  if (currentPage > maxPage) {
+    Notify.failure(
+      "We're sorry, but you've reached the end of search results."
+    );
+  } else {
+    genRequest();
+  }
+};
+
+const scrollEvent = Throttle(() => {
+  if (
+    refs.gallery.lastElementChild.getBoundingClientRect().top <
+    document.documentElement.clientHeight
+  )
+    pagination();
+}, 300);
+
+const genRequest = () => {
+  params.q = inputValue;
+  params.page = currentPage;
+  fetchImages()
+    .then(hadleResponse)
+    .catch(error => console.log(error.message));
+};
+
 const hadleResponse = response => {
-  if (response.data.totalHits === 0) {
+  const totalImage = response.data.totalHits;
+  if (totalImage === 0) {
     Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
   } else {
-    if (currentPage === 1)
-      Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+    if (currentPage === 1) {
+      maxPage = totalImage / params.per_page;
+      Notify.success(`Hooray! We found ${totalImage} images.`);
+    }
     renderImages(response.data.hits);
+    document.addEventListener('scroll', scrollEvent);
   }
 };
 
@@ -84,11 +118,8 @@ const handleEvent = event => {
   event.preventDefault();
   inputValue = event.currentTarget.elements.searchQuery.value.trim();
   if (inputValue !== '') {
-    params.q = inputValue;
-    params.page = currentPage;
-    fetchImages()
-      .then(hadleResponse)
-      .catch(error => console.log(error.message));
+    currentPage = 1;
+    genRequest();
   } else {
     Notify.failure('An empty string has been entered. Please try again.');
   }
